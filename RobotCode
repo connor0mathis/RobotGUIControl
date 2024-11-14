@@ -1,0 +1,148 @@
+####################################################
+##   Author:     Sonny Smothers, Connor Mathis
+##   Written:	 Date
+##   
+##   <description of the code comes here>
+##
+####################################################
+
+
+import struct
+import serial 
+import time
+
+class Robot:
+	startCMD				=  128
+	resetCMD				=  7
+	# commands definitions
+	start					= b'\x80'
+	safe					= b'\x83'
+	sensors					= b'\x8E'
+	reset					= b'\x07'
+	stop					= b'\xAD'
+	buttons					= b'\x12'
+	driveDirect				= b'\x91'
+	drive					= b'\x89'
+	leds					= b'\x8B'
+	
+	# packet IDs definitions
+	wall					= b'\x08'
+	bumpsAndWheels			= b'\x07'
+	cliffLeft				= b'\x09'
+	cliffFrontLeft			= b'\x0A'
+	cliffFrontRight			= b'\x0B'
+	cliffRight				= b'\x0C'
+	virtualWall				= b'\x0D'
+	buttons					= b'\x12'
+	distance				= b'\x13'
+	angle					= b'\x14'
+	chargingState			= b'\x15'
+	voltage					= b'\x16'
+	temperature				= b'\x18'
+	batteryCharge			= b'\x19'
+	wallSignal				= b'\x1A'
+	cliffLeftSignal			= b'\x1B'
+	cliffFrontLeftSignal	= b'\x1C'
+	cliffFrontRightSignal	= b'\x1D'
+	cliffRightSignal		= b'\x1E'
+	
+	#note constants
+	
+	
+	def __init__(self, port):
+		try:
+			self.serial_connection = serial.Serial(port ="COM4", baudrate=115200,timeout =1)
+			print("Connected!")
+		except serial.SerialException:
+			print("Connection failure!")
+		time.sleep(1)
+		self.serial_connection.close()
+		time.sleep(1)
+		self.serial_connection.open()
+
+	def sendCommand(self, input):
+		self.serial_connection.write(input)
+
+	def read(self, howManyBytes):
+	# code here
+		pass
+
+	def start(self):
+	# code here
+	# time.sleep(1)
+		self.sendCommand(chr(self.startCMD))
+
+
+
+	def stop(self):
+	# code here
+		pass
+
+	def reset(self):
+		self.sendCommand(chr(self.resetCMD))
+		time.sleep(1)
+
+	def safe(self):
+		# code here
+		pass
+
+	def seekDock(self):
+		# code here
+		pass
+
+	def drive(self, velocityHighByte, velocityLowByte, radiusHighByte, radiushLowByte):
+		# code here
+		pass
+
+	def driveDirect(self, rightWheelHighByte, rightWheelLowByte, leftWheelHighByte, leftWheelLowByte):
+		# code here
+		pass
+
+	def leds(self, ledBits, powerColor, powerIntensity):
+		# code here
+		pass
+
+	def digitLEDsASCII(self, digit3, digit2, digit1, digit0):
+		# code here
+		pass
+	def playTune (self):
+		HALF_NOTE = (b'\x60')
+		QUARTER_NOTE = (b'\x40')
+		EIGTH_NOTE = (b'\x20')
+		SIXTEENTH_NOTE = (b'\x10')
+		THIRTYSECOND_NOTE = (b'\x08')
+		A_NOTE = (b'\x45')
+		LO_A = (b'\x39')
+		B_NOTE = (b'\x3B')
+		C_NOTE = (b'\x3D')
+		D_NOTE = (b'\x3E')
+		LO_D_NOTE = (b'\x37')
+		LO_D_END = (b'\x35')
+		LOWEST_D_NOTE = (b'\x32')
+		E_NOTE = (b'\x3E')
+		E_HIGH_NOTE = (b'\x40')
+		F_NOTE = (b'\x40')
+		HI_F_NOTE = (b'\x42')
+		LO_F_NOTE = (b'\x35')
+		G_NOTE = (b'\x43')
+		### Song 1 starts here
+		self.sendCommand(b'\x8C\x00\x11') ##Opcode for creating a song, sends as song 1, and that it will contain 16 notes
+		self.sendCommand(C_NOTE + EIGTH_NOTE + F_NOTE + EIGTH_NOTE + C_NOTE + EIGTH_NOTE + D_NOTE + EIGTH_NOTE + C_NOTE + EIGTH_NOTE + F_NOTE + EIGTH_NOTE + C_NOTE + QUARTER_NOTE + C_NOTE + EIGTH_NOTE + F_NOTE + EIGTH_NOTE + C_NOTE + EIGTH_NOTE + F_NOTE + EIGTH_NOTE + A_NOTE + EIGTH_NOTE
+		+ G_NOTE + SIXTEENTH_NOTE + F_NOTE + SIXTEENTH_NOTE + E_NOTE + SIXTEENTH_NOTE + D_NOTE + SIXTEENTH_NOTE + LO_D_NOTE + SIXTEENTH_NOTE + LO_D_END + SIXTEENTH_NOTE) 
+
+		time.sleep(1)
+		### Song 1 ends here
+
+		self.sendCommand(b'\x8D\x00') ##Opcode for playing the song, play song #1
+		time.sleep(9)
+
+		### Song 2 starts here
+		self.sendCommand(b'\x8C\x01\x0E')
+		self.sendCommand(C_NOTE + EIGTH_NOTE + F_NOTE + EIGTH_NOTE + C_NOTE + EIGTH_NOTE + D_NOTE + EIGTH_NOTE + C_NOTE + EIGTH_NOTE + F_NOTE + EIGTH_NOTE + C_NOTE + QUARTER_NOTE + D_NOTE + EIGTH_NOTE + C_NOTE + SIXTEENTH_NOTE + F_NOTE + SIXTEENTH_NOTE + LO_A + EIGTH_NOTE + LO_D_NOTE + EIGTH_NOTE + LO_F_NOTE + EIGTH_NOTE + LOWEST_D_NOTE + EIGTH_NOTE)
+		### Song 2 ends here
+
+		self.sendCommand(b'\x8D\x01') #Play a song, play song #2
+		time.sleep(1)
+		
+			
+

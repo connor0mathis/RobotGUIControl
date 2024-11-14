@@ -20,5 +20,5 @@ The following have been completed at the time of editing this README:
 3. Not complete
 4. Done
 5. UI display completed, implementation required
-6. Not Done
+6. Buttons are done visually, missing functionality
 7. Not required.

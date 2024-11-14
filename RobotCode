@@ -1,5 +1,5 @@
 ####################################################
-##   Author:     Sonny Smothers, Connor Mathis
+##   Author:     Full Name
 ##   Written:	 Date
 ##   
 ##   <description of the code comes here>
@@ -12,39 +12,37 @@ import serial
 import time
 
 class Robot:
-	startCMD				=  128
-	resetCMD				=  7
 	# commands definitions
-	start					= b'\x80'
-	safe					= b'\x83'
-	sensors					= b'\x8E'
-	reset					= b'\x07'
-	stop					= b'\xAD'
-	buttons					= b'\x12'
-	driveDirect				= b'\x91'
-	drive					= b'\x89'
-	leds					= b'\x8B'
+	startID					= b'\x80'
+	safeID					= b'\x83'
+	sensorsID				= b'\x8E'
+	resetID					= b'\x07'
+	stopID					= b'\xAD'
+	buttonsID				= b'\x12'
+	driveDirectID			= b'\x91'
+	driveID					= b'\x89'
+	ledID					= b'\x8B'
 	
 	# packet IDs definitions
-	wall					= b'\x08'
-	bumpsAndWheels			= b'\x07'
-	cliffLeft				= b'\x09'
-	cliffFrontLeft			= b'\x0A'
-	cliffFrontRight			= b'\x0B'
-	cliffRight				= b'\x0C'
-	virtualWall				= b'\x0D'
-	buttons					= b'\x12'
-	distance				= b'\x13'
-	angle					= b'\x14'
-	chargingState			= b'\x15'
-	voltage					= b'\x16'
-	temperature				= b'\x18'
-	batteryCharge			= b'\x19'
-	wallSignal				= b'\x1A'
-	cliffLeftSignal			= b'\x1B'
-	cliffFrontLeftSignal	= b'\x1C'
-	cliffFrontRightSignal	= b'\x1D'
-	cliffRightSignal		= b'\x1E'
+	wallID					= b'\x08'
+	bumpsAndWheelsID		= b'\x07'
+	cliffLeftID				= b'\x09'
+	cliffFrontLeftID		= b'\x0A'
+	cliffFrontRightID		= b'\x0B'
+	cliffRightID			= b'\x0C'
+	virtualWallID			= b'\x0D'
+	buttonsID				= b'\x12'
+	distanceID				= b'\x13'
+	angleID					= b'\x14'
+	chargingStateID			= b'\x15'
+	voltageID				= b'\x16'
+	temperatureID			= b'\x18'
+	batteryChargeID			= b'\x19'
+	wallSignalID			= b'\x1A'
+	cliffLeftSignalID		= b'\x1B'
+	cliffFrontLeftSignalID	= b'\x1C'
+	cliffFrontRightSignalID	= b'\x1D'
+	cliffRightSignalID		= b'\x1E'
 	
 	#note constants
 	
@@ -69,41 +67,59 @@ class Robot:
 
 	def start(self):
 	# code here
-	# time.sleep(1)
-		self.sendCommand(chr(self.startCMD))
+		time.sleep(1)
+		self.sendCommand(self.startID)
+
+		pass
 
 
 
 	def stop(self):
 	# code here
+		self.sendCommand(self.stopID)
 		pass
 
 	def reset(self):
-		self.sendCommand(chr(self.resetCMD))
+		self.sendCommand(self.resetID)
 		time.sleep(1)
 
 	def safe(self):
-		# code here
+		self.sendCommand(self.safeID)
 		pass
 
 	def seekDock(self):
-		# code here
 		pass
 
-	def drive(self, velocityHighByte, velocityLowByte, radiusHighByte, radiushLowByte):
-		# code here
+	def drive(self, velocityHighByte, velocityLowByte, radiusHighByte, radiusLowByte):
+		self.sendCommand(self.driveID)
+		self.sendCommand(velocityHighByte)
+		self.sendCommand(velocityLowByte)
+		self.sendCommand(radiusHighByte)
+		self.sendCommand(radiusLowByte)
 		pass
 
 	def driveDirect(self, rightWheelHighByte, rightWheelLowByte, leftWheelHighByte, leftWheelLowByte):
-		# code here
+		self.sendCommand(self.driveDirectID)
+		self.sendCommand(rightWheelHighByte)
+		self.sendCommand(rightWheelHighByte)
+		self.sendCommand(leftWheelHighByte)
+		self.sendCommand(leftWheelLowByte)
+
 		pass
 
 	def leds(self, ledBits, powerColor, powerIntensity):
-		# code here
+		self.sendCommand(self.ledID)
+		self.sendCommand(powerColor)
+		self.sendCommand(powerIntensity)
 		pass
 
 	def digitLEDsASCII(self, digit3, digit2, digit1, digit0):
-		# code here
+		self.sendCommand(self.digitLEDsASCII)
+		self.sendCommand()
+		self.sendCommand()
+		self.sendCommand()
+		self.sendCommand()
+		
 		pass
 	def playTune (self):
 		HALF_NOTE = (b'\x60')
@@ -143,6 +159,7 @@ class Robot:
 
 		self.sendCommand(b'\x8D\x01') #Play a song, play song #2
 		time.sleep(1)
+
 		
 			
 

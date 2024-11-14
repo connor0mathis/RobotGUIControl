@@ -19,6 +19,6 @@ The following have been completed at the time of editing this README:
 2. Somewhat complete
 3. Not complete
 4. Done
-5. In-Progress
+5. UI display completed, implementation required
 6. Not Done
 7. Not required.

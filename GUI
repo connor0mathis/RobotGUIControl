@@ -1,0 +1,88 @@
+#Change the file directory pointers to your actual
+
+############################################################
+######################## GUI ###############################
+############################################################
+
+	#Root Initalise
+root = Tk()
+root.geometry('700x700')
+root.configure(background='#00BB77')
+
+    #Music Note Player
+music_note = PhotoImage(file="C:\\Users\\mathi\\Documents\\Coding Projects\\Music.png", width = 35, height = 35)
+music_Button = Button(root, image=music_note)
+music_Button.place(x=40, y=10)
+music_text = Label(root, text="Click to play a tune!")
+music_text.place(x=10,y=60)
+
+    #Left Movement Triangle
+LeftTriangle = PhotoImage(file= "C:\\Users\\mathi\\Documents\\Coding Projects\\LSmallTriangle.png", width=23, height=23)
+LT_Button = Button(root, image=LeftTriangle)
+LT_Button.place(x=560,y=560)
+
+    #Right Movement Triangle
+RightTriangle = PhotoImage(file= "C:\\Users\\mathi\\Documents\\Coding Projects\\RSmallTriangle.png", width=23, height=23)
+RT_Button = Button(root, image=RightTriangle)
+RT_Button.place(x=620,y=560)
+
+    #Upward Movement Triangle
+UpTriangle =PhotoImage(file= "C:\\Users\\mathi\\Documents\\Coding Projects\\SmallTriangle.png", width=23, height=23)
+UP_Button = Button(root, image=UpTriangle)
+UP_Button.place(x=590,y=530)
+
+    #Downward Movement Triangle
+DownTriangle = PhotoImage(file= "C:\\Users\\mathi\\Documents\\Coding Projects\\DSmallTriangle.png", width=23, height=23)
+DN_Button = Button(root, image=DownTriangle)
+DN_Button.place(x=590,y=590)
+
+#Red Diamond
+RedDiamond = PhotoImage(file= "C:\\Users\\mathi\\Documents\\Coding Projects\\RSmallDiamond.png", width=25, height=25)
+Red_Diamond = Button(root, image=RedDiamond)
+Red_Diamond.place(x=650,y=55)
+
+#Orange Circle
+OrangeCircle = PhotoImage(file= "C:\\Users\\mathi\\Documents\\Coding Projects\\orange_circle.png", width=25, height=25)
+Orange_Circle = Button(root, image=OrangeCircle)
+Orange_Circle.place(x=620,y=55)
+
+#Green Circle
+GreenCircle = PhotoImage(file= "C:\\Users\\mathi\\Documents\\Coding Projects\\green_circle.png", width=25, height=25)
+Green_Circle = Button(root, image=GreenCircle)
+Green_Circle.place(x=560,y=55)
+
+#Yellow Circle
+YellowCircle = PhotoImage(file= "C:\\Users\\mathi\\Documents\\Coding Projects\\yellow_circle.png", width=25, height=25)
+Yellow_Circle = Button(root, image=YellowCircle)
+Yellow_Circle.place(x=590,y=55)
+
+#Start Diamond
+StartDiamond = PhotoImage(file= "C:\\Users\\mathi\\Documents\\Coding Projects\\SmallStart.png", width=30, height=27)
+Start_Diamond = Button(root, image=StartDiamond)
+Start_Diamond.place(x=50,y=600)
+
+#Stop
+Stop = PhotoImage(file= "C:\\Users\\mathi\\Documents\\Coding Projects\\SmallStop.png", width=30, height=30)
+Stop_Button = Button(root, command=root.destroy, image=Stop)
+Stop_Button.place(x=100,y=600)
+
+#Robot Image Display Neutral
+RobotImage = PhotoImage(file= "C:\\Users\\mathi\\Documents\\Coding Projects\\RobotSee.png", width=200, height=200)
+Robot_Display = Label(root, image=RobotImage)
+Robot_Display.place(x=250, y=250)
+
+#LED Entry
+ledDisplay = StringVar()
+ledDisplay_Input = Entry(root, textvariable=ledDisplay)
+ledDisplay_Text = Label(root, text="Input 4 numbers to display LEDs")
+ledDisplay_Input.place(x=290, y=470)
+ledDisplay_Text.place(x=265, y=500)
+
+
+
+root.mainloop()
+	
+
+	
+    
+

@@ -1,0 +1,228 @@
+####################################################
+##   Author:     Full Name
+##   Written:	 Date
+##   
+##   <description of the code comes here>
+##
+####################################################
+
+
+import struct
+import serial 
+import time
+import tkinter
+from tkinter import ttk
+from tkinter import *
+from tkinter.ttk import *
+import serial
+
+
+class Robot:
+	# commands definitions
+	startID					= b'\x80'
+	safeID					= b'\x83'
+	sensorsID				= b'\x8E'
+	resetID					= b'\x07'
+	stopID					= b'\xAD'
+	buttonsID				= b'\x12'
+	driveDirectID			= b'\x91'
+	driveID					= b'\x89'
+	ledID					= b'\x8B'
+	
+	# packet IDs definitions
+	wallID					= b'\x08'
+	bumpsAndWheelsID		= b'\x07'
+	cliffLeftID				= b'\x09'
+	cliffFrontLeftID		= b'\x0A'
+	cliffFrontRightID		= b'\x0B'
+	cliffRightID			= b'\x0C'
+	virtualWallID			= b'\x0D'
+	buttonsID				= b'\x12'
+	distanceID				= b'\x13'
+	angleID					= b'\x14'
+	chargingStateID			= b'\x15'
+	voltageID				= b'\x16'
+	temperatureID			= b'\x18'
+	batteryChargeID			= b'\x19'
+	wallSignalID			= b'\x1A'
+	cliffLeftSignalID		= b'\x1B'
+	cliffFrontLeftSignalID	= b'\x1C'
+	cliffFrontRightSignalID	= b'\x1D'
+	cliffRightSignalID		= b'\x1E'
+	digitLEDsASCIIID 		= b'\xA4'
+	#note constants
+	
+	
+	def __init__(self, port):
+		try:
+			self.serial_connection = serial.Serial(port = port, baudrate=115200,timeout =1)
+			print("Connected!")
+		except serial.SerialException:
+			print("Connection failure!")
+		time.sleep(1)
+		self.serial_connection.close()
+		time.sleep(1)
+		self.serial_connection.open()
+		self.start()
+		self.reset()
+		self.start()
+
+	def sendCommand(self, input):
+		self.serial_connection.write(input)
+
+	def read(self, howManyBytes):
+	# code here
+		pass
+
+	def start(self):
+	# code here
+		time.sleep(1)
+		self.sendCommand(self.startID)
+
+		pass
+
+
+
+	def stop(self):
+	# code here
+		self.sendCommand(self.stopID)
+		pass
+
+	def reset(self):
+		time.sleep(2)
+		self.sendCommand(self.resetID)
+		
+
+	def safe(self):
+		self.sendCommand(self.safeID)
+		pass
+
+	def seekDock(self):
+		pass
+
+	def drive(self, velocityHighByte, velocityLowByte, radiusHighByte, radiusLowByte):
+		self.sendCommand(self.driveID)
+		self.sendCommand(velocityHighByte)
+		self.sendCommand(velocityLowByte)
+		self.sendCommand(radiusHighByte)
+		self.sendCommand(radiusLowByte)
+		pass
+
+	def driveDirect(self, rightWheelHighByte, rightWheelLowByte, leftWheelHighByte, leftWheelLowByte):
+		self.sendCommand(self.driveDirectID)
+		self.sendCommand(rightWheelHighByte)
+		self.sendCommand(rightWheelLowByte)
+		self.sendCommand(leftWheelHighByte)
+		self.sendCommand(leftWheelLowByte)
+
+		pass
+
+	def leds(self, ledBits, powerColor, powerIntensity):
+		self.sendCommand(self.ledID)
+		self.sendCommand(ledBits)
+		self.sendCommand(powerColor)
+		self.sendCommand(powerIntensity)
+		pass
+
+	def digitLEDsASCII(self, digit3, digit2, digit1, digit0):
+		self.sendCommand(self.digitLEDsASCIIID)
+		self.sendCommand(digit3)
+		self.sendCommand(digit2)
+		self.sendCommand(digit1)
+		self.sendCommand(digit0)
+		
+		pass
+	def playTune (self):
+		
+		pass
+
+class UI:
+    ##UI
+	def onPress(self):
+			print("Button pressed")
+	def key_press(event):
+		key = event.char
+		print(key, 'being pressed')		
+    
+	def __init__(self, port):
+		Robo = Robot(port)
+		root = Tk()
+		root.bind('<Return>')
+		root.geometry('700x700')
+		root.configure(background='#00BB77')
+		
+		#Music Note Player
+		self.music_note = PhotoImage(file="C:\\Users\\mathi\\Documents\\Coding Projects\\Music.png", width = 35, height = 35)
+		self.music_Button = Button(root, command=Robot.playTune(1), image=self.music_note)
+		self.music_Button.place(x=40, y=10)
+		self.music_Button.bind("<ButtonPress>",  self.onPress())
+		self.music_Button.bind("<ButtonRelease>")
+		self.music_text = Label(root, text="Click the note to play a tune!")
+		self.music_text.place(x=10,y=60)
+
+		#Left Movement Triangle
+		self.LeftTriangle = PhotoImage(file= "C:\\Users\\mathi\\Documents\\Coding Projects\\LSmallTriangle.png", width=23, height=23)
+		self.LT_Button = Button(root, image=self.LeftTriangle )
+		self.LT_Button.bind('<Key>', self.key_press)
+		self.LT_Button.place(x=560,y=560)
+
+		#Right Movement Triangle
+		self.RightTriangle = PhotoImage(file= "C:\\Users\\mathi\\Documents\\Coding Projects\\RSmallTriangle.png", width=23, height=23)
+		self.RT_Button = Button(root, image=self.RightTriangle )
+		self.RT_Button.place(x=620,y=560)
+
+		#Upward Movement Triangle
+		self.UpTriangle =PhotoImage(file= "C:\\Users\\mathi\\Documents\\Coding Projects\\SmallTriangle.png", width=23, height=23)
+		self.UP_Button = Button(root, image=self.UpTriangle )
+		self.UP_Button.place(x=590,y=530)
+
+		#Downward Movement Triangle
+		self.DownTriangle = PhotoImage(file= "C:\\Users\\mathi\\Documents\\Coding Projects\\DSmallTriangle.png", width=23, height=23)
+		self.DN_Button = Button(root, image=self.DownTriangle )
+		self.DN_Button.place(x=590,y=590)
+
+		#Red Diamond
+		self.RedDiamond = PhotoImage(file= "C:\\Users\\mathi\\Documents\\Coding Projects\\RSmallDiamond.png", width=25, height=25)
+		self.Red_Diamond = Button(root, command=Robot.stop, image=self.RedDiamond)
+		self.Red_Diamond.place(x=650,y=55)
+		
+        #Orange Circle
+		self.OrangeCircle = PhotoImage(file= "C:\\Users\\mathi\\Documents\\Coding Projects\\orange_circle.png", width=25, height=25)
+		self.Orange_Circle = Button(root, image=self.OrangeCircle)
+		self.Orange_Circle.place(x=610,y=55)
+		
+        #Green Circle
+		self.GreenCircle = PhotoImage(file= "C:\\Users\\mathi\\Documents\\Coding Projects\\green_circle.png", width=25, height=25)
+		self.Green_Circle = Button(root, image=self.GreenCircle)
+		self.Green_Circle.place(x=530,y=55)
+		
+        #Yellow Circle
+		self.YellowCircle = PhotoImage(file= "C:\\Users\\mathi\\Documents\\Coding Projects\\yellow_circle.png", width=25, height=25)
+		self.Yellow_Circle = Button(root, image=self.YellowCircle)
+		self.Yellow_Circle.place(x=570,y=55)
+
+		#Start Diamond
+		self.StartDiamond = PhotoImage(file= "C:\\Users\\mathi\\Documents\\Coding Projects\\SmallStart.png", width=30, height=27)
+		self.Start_Diamond = Button(root, command=Robot.start, image=self.StartDiamond)
+		self.Start_Diamond.place(x=50,y=600)
+
+		#Stop
+		self.Stop = PhotoImage(file= "C:\\Users\\mathi\\Documents\\Coding Projects\\SmallStop.png", width=30, height=30)
+		self.Stop_Button = Button(root, command=root.destroy, image=self.Stop)
+		self.Stop_Button.place(x=100,y=600)
+
+		#Robot Image Display
+		self.RobotImage = PhotoImage(file= "C:\\Users\\mathi\\Documents\\Coding Projects\\RobotSee.png", width=200, height=200)
+		self.Robot_Display = Label(root, image=self.RobotImage)
+		self.Robot_Display.place(x=250, y=250)
+		
+        #LED Entry
+		self.ledDisplay = StringVar()
+		self.ledDisplay_Input = Entry(root, textvariable=self.ledDisplay)
+		self.ledDisplay_Text = Label(root, text="Input 4 numbers to display LEDs")
+		self.ledDisplay_Input.place(x=290,y=470)
+		self.ledDisplay_Text.place(x=265,y=500)
+
+		root.mainloop()
+		
+UI = UI("COM3")

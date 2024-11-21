@@ -1,0 +1,120 @@
+import serial
+import time
+import tkinter as tk
+
+
+class RobotControl:
+    CMD_START = b'\x80'
+    CMD_SAFE = b'\x83'
+    CMD_DRIVE_DIRECT = b'\x91'
+    CMD_LEDS = b'\x8B'
+    CMD_DIGIT_LEDS = b'\xA4'
+
+    def __init__(self, port):
+        try:
+            self.connection = serial.Serial(port=port, baudrate=115200, timeout=1)
+            print("Robot connected on", port)
+        except serial.SerialException as e:
+            print("Connection failed:", e)
+            self.connection = None
+            return
+
+        time.sleep(1)
+        self.connection.close()
+        time.sleep(1)
+        self.connection.open()
+        self._send_command(self.CMD_START)
+        self._send_command(self.CMD_SAFE)
+
+    def _send_command(self, cmd):
+        if self.connection and self.connection.is_open:
+            self.connection.write(cmd)
+        else:
+            print("Failed to send command. Check connection.")
+
+    def move(self, right_speed, left_speed):
+        right_high = (right_speed >> 8) & 0xFF
+        right_low = right_speed & 0xFF
+        left_high = (left_speed >> 8) & 0xFF
+        left_low = left_speed & 0xFF
+        self._send_command(self.CMD_DRIVE_DIRECT + bytes([right_high, right_low, left_high, left_low]))
+
+    def stop(self):
+        self.move(0, 0)
+
+    def set_led_color(self, color, brightness):
+        self._send_command(self.CMD_LEDS)
+        self._send_command(0x02)
+        self._send_command(color)
+        self._send_command(brightness)
+
+    def set_display(self, value):
+        digits = [ord(char) for char in f"{value:04}"[:4]]
+        self._send_command(self.CMD_DIGIT_LEDS + bytes(digits))
+
+
+class ControlApp:
+    def __init__(self, port):
+        self.robot = RobotControl(port)
+        self.window = tk.Tk()
+        self.window.title("Robot Controller")
+        self.window.geometry("600x400")
+        self.active_keys = {"w": False, "a": False, "s": False, "d": False}
+        self._setup_ui()
+        self._bind_keys()
+
+    def _setup_ui(self):
+        # Entry for LED digit display
+        self.display_entry = tk.Entry(self.window)
+        self.display_entry.place(x=250, y=300, width=100, height=30)
+        tk.Button(self.window, text="Set Display", command=self._update_display).place(x=370, y=300, width=100, height=30)
+
+        # Buttons for LED colors
+        tk.Button(self.window, text="Red LED", command=lambda: self.robot.set_led_color(b'\xFF', b'\x80'), bg="red").place(x=50, y=100, width=100, height=50)
+        tk.Button(self.window, text="Green LED", command=lambda: self.robot.set_led_color(b'\x00', b'\x80'), bg="green").place(x=175, y=100, width=100, height=50)
+        tk.Button(self.window, text="Blue LED", command=lambda: self.robot.set_led_color(b'\x80', b'\x80'), bg="blue").place(x=300, y=100, width=100, height=50)
+        tk.Button(self.window, text="Yellow LED", command=lambda: self.robot.set_led_color(b'\xFF', b'\xFF'), bg="yellow").place(x=425, y=100, width=100, height=50)
+
+        # Quit button
+        tk.Button(self.window, text="QUIT", command=self.window.quit, bg="black", fg="white").place(x=500, y=350, width=80, height=30)
+
+    def _bind_keys(self):
+        # Key press and release bindings for WASD
+        self.window.bind("<KeyPress-w>", lambda e: self._key_action("w", True))
+        self.window.bind("<KeyRelease-w>", lambda e: self._key_action("w", False))
+        self.window.bind("<KeyPress-a>", lambda e: self._key_action("a", True))
+        self.window.bind("<KeyRelease-a>", lambda e: self._key_action("a", False))
+        self.window.bind("<KeyPress-s>", lambda e: self._key_action("s", True))
+        self.window.bind("<KeyRelease-s>", lambda e: self._key_action("s", False))
+        self.window.bind("<KeyPress-d>", lambda e: self._key_action("d", True))
+        self.window.bind("<KeyRelease-d>", lambda e: self._key_action("d", False))
+
+    def _key_action(self, key, is_pressed):
+        self.active_keys[key] = is_pressed
+        self._update_movement()
+
+    def _update_movement(self):
+        # Determine movement based on active keys
+        fwd = 0xC8 if self.active_keys["w"] else 0x00  # Forward speed in hex (200)
+        back = -0xC8 if self.active_keys["s"] else 0x00  # Backward speed in hex (-200)
+        left = 0xC8 if self.active_keys["a"] else 0x00  # Left turn speed in hex (-100)
+        right = 0xC8 if self.active_keys["d"] else 0x00  # Right turn speed in hex (100)
+
+        left_speed = fwd + back + left
+        right_speed = fwd + back + right
+        self.robot.move(right_speed, left_speed)
+
+    def _update_display(self):
+        try:
+            value = int(self.display_entry.get())
+            self.robot.set_display(value)
+        except ValueError:
+            print("Invalid display value. Enter a 4-digit number.")
+
+    def run(self):
+        self.window.mainloop()
+
+
+if __name__ == "__main__":
+    app = ControlApp(port="COM3")  # Replace with the correct COM port
+    app.run()

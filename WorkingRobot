@@ -1,0 +1,103 @@
+import serial
+import time
+import tkinter as tk
+from tkinter import PhotoImage, StringVar
+
+
+class Robot:
+    # Command definitions
+    START = b'\x80'
+    SAFE = b'\x83'
+    RESET = b'\x07'
+    STOP = b'\xAD'
+    DRIVE_DIRECT = b'\x91'
+    LEDS = b'\x8B'
+    DIGIT_LEDS = b'\xA4'
+
+    def __init__(self, port):
+        try:
+            self.connection = serial.Serial(port=port, baudrate=115200, timeout=1)
+            print("Robot connected!")
+        except serial.SerialException as e:
+            print(f"Connection failed: {e}")
+            self.connection = None
+            return
+
+        time.sleep(1)
+        self.connection.close()
+        time.sleep(1)
+        self.connection.open()
+        self.send_command(self.START)
+        self.send_command(self.SAFE)
+
+    def send_command(self, command):
+        if self.connection and self.connection.is_open:
+            self.connection.write(command)
+        else:
+            print("Command failed: Connection is not open.")
+
+    def drive_direct(self, right_speed, left_speed):
+        right_high = (right_speed >> 8) & 0xFF
+        right_low = right_speed & 0xFF
+        left_high = (left_speed >> 8) & 0xFF
+        left_low = left_speed & 0xFF
+        self.send_command(self.DRIVE_DIRECT + bytes([right_high, right_low, left_high, left_low]))
+
+    def stop(self):
+        self.drive_direct(0, 0)
+
+    def set_leds(self, color, intensity):
+        self.send_command(self.LEDS + bytes([0x02, color, intensity]))
+
+    def set_digit_leds(self, digits):
+        digits = [ord(char) for char in f"{digits:04}"[:4]]
+        self.send_command(self.DIGIT_LEDS + bytes(digits))
+class RobotController:
+    def __init__(self, port):
+        self.robot = Robot(port)
+
+
+class RobotUI:
+    def __init__(self, port):
+        self.RobotController = RobotController(port)
+        self.root = tk.Tk()
+        self.root.title("iRobot Create 2 Controller")
+        self.root.geometry("700x700")
+        self.root.configure(background="#00BB77")
+        self.led_display_var = StringVar()
+        self.create_widgets()
+
+    def create_widgets(self):
+        # Buttons for robot movement
+        tk.Button(self.root, text="Forward", command=lambda: self.robot.drive_direct(200, 200), bg="white").place(x=300, y=150, width=100, height=50)
+        tk.Button(self.root, text="Backward", command=lambda: self.robot.drive_direct(-200, -200), bg="white").place(x=300, y=250, width=100, height=50)
+        tk.Button(self.root, text="Left", command=lambda: self.robot.drive_direct(-100, 100), bg="white").place(x=200, y=200, width=100, height=50)
+        tk.Button(self.root, text="Right", command=lambda: self.robot.drive_direct(100, -100), bg="white").place(x=400, y=200, width=100, height=50)
+        tk.Button(self.root, text="STOP", command=self.robot.stop, bg="red", fg="white").place(x=300, y=200, width=100, height=50)
+
+        # Buttons for LEDs
+        tk.Button(self.root, text="Red LED", command=lambda: self.robot.set_leds(255, 128), bg="red").place(x=100, y=500, width=100, height=50)
+        tk.Button(self.root, text="Green LED", command=lambda: self.robot.set_leds(0, 128), bg="green").place(x=300, y=500, width=100, height=50)
+        tk.Button(self.root, text="Blue LED", command=lambda: self.robot.set_leds(128, 128), bg="blue").place(x=500, y=500, width=100, height=50)
+
+        # LED digit display
+        tk.Entry(self.root, textvariable=self.led_display_var).place(x=300, y=600, width=100, height=30)
+        tk.Button(self.root, text="Set Display", command=self.set_digit_display).place(x=410, y=600, width=100, height=30)
+
+        # Quit button
+        tk.Button(self.root, text="QUIT", command=self.root.quit, bg="black", fg="white").place(x=600, y=650, width=100, height=50)
+
+    def set_digit_display(self):
+        try:
+            digits = int(self.led_display_var.get())
+            self.robot.set_digit_leds(digits)
+        except ValueError:
+            print("Invalid input for LED display. Enter a 4-digit number.")
+
+    def run(self):
+        self.root.mainloop()
+
+
+if __name__ == "__main__":
+    app = RobotUI(port="COM3")  # Update COM port as needed
+    app.run()

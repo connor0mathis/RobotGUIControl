@@ -1,0 +1,262 @@
+import serial
+import time
+import tkinter as tk
+from tkinter import PhotoImage, StringVar
+from PIL import Image, ImageTk
+
+
+class Robot:
+    # Command definitions
+    # commands definitions
+    startID					= b'\x80'
+    safeID					= b'\x83'
+    sensorsID				= b'\x8E'
+    resetID					= b'\x07'
+    stopID					= b'\xAD'
+    buttonsID				= b'\x12'
+    driveDirectID			= b'\x91'
+    driveID					= b'\x89'
+    ledID					= b'\x8B'
+    digitledID = b'\xA4'
+	
+	# packet IDs definitions
+    wallID					= b'\x08'
+    bumpsAndWheelsID		= b'\x07'
+    cliffLeftID				= b'\x09'
+    cliffFrontLeftID		= b'\x0A'
+    cliffFrontRightID		= b'\x0B'
+    cliffRightID			= b'\x0C'
+    virtualWallID			= b'\x0D'
+    buttonsID				= b'\x12'
+    distanceID				= b'\x13'
+    angleID					= b'\x14'
+    chargingStateID			= b'\x15'
+    voltageID				= b'\x16'
+    temperatureID			= b'\x18'
+    batteryChargeID			= b'\x19'
+    wallSignalID			= b'\x1A'
+    cliffLeftSignalID		= b'\x1B'
+    cliffFrontLeftSignalID	= b'\x1C'
+    cliffFrontRightSignalID	= b'\x1D'
+    cliffRightSignalID		= b'\x1E'
+    
+	
+	#note constants
+    def __init__(self, port):
+        try:
+            self.connection = serial.Serial(port=port, baudrate=115200, timeout=1)
+            print("Robot connected!")
+        except serial.SerialException as e:
+            print(f"Connection failed: {e}")
+            self.connection = None
+            return
+
+        time.sleep(1)
+        self.connection.close()
+        time.sleep(1)
+        self.connection.open()
+        self.send_command(self.startID)
+        self.send_command(self.safeID)
+
+    def send_command(self, command):
+        if self.connection and self.connection.is_open:
+            self.connection.write(command)
+        else:
+            print("Command failed: Connection is not open.")
+
+    def drive_direct(self, right_speed, left_speed):
+        right_high = (right_speed >> 8) & 0xFF
+        right_low = right_speed & 0xFF
+        left_high = (left_speed >> 8) & 0xFF
+        left_low = left_speed & 0xFF
+        self.send_command(self.driveDirectID + bytes([right_high, right_low, left_high, left_low]))
+
+    
+    def stop(self):
+        self.drive_direct(0, 0)
+
+    def set_leds(self, color, intensity):
+        self.send_command(self.ledID + bytes([0x02, color, intensity]))
+
+    def set_digit_leds(self, digits):
+        digits = [ord(char) for char in f"{digits:04}"[:4]]
+        self.send_command(self.digitledID + bytes(digits))
+    
+    def playTune (self):
+        HALF_NOTE = (b'\x60')
+        QUARTER_NOTE = (b'\x40')
+        EIGTH_NOTE = (b'\x20')
+        SIXTEENTH_NOTE = (b'\x10')
+        THIRTYSECOND_NOTE = (b'\x08')
+        A_NOTE = (b'\x45')
+        LO_A = (b'\x39')
+        B_NOTE = (b'\x3B')
+        C_NOTE = (b'\x3D')
+        D_NOTE = (b'\x3E')
+        LO_D_NOTE = (b'\x37')
+        LO_D_END = (b'\x35')
+        LOWEST_D_NOTE = (b'\x32')
+        E_NOTE = (b'\x3E')
+        E_HIGH_NOTE = (b'\x40')
+        F_NOTE = (b'\x40')
+        HI_F_NOTE = (b'\x42')
+        LO_F_NOTE = (b'\x35')
+        G_NOTE = (b'\x43')
+        ### Song 1 starts here
+        self.send_command(b'\x8C\x00\x11') ##Opcode for creating a song, sends as song 1, and that it will contain 16 notes
+        self.send_command(C_NOTE + EIGTH_NOTE + F_NOTE + EIGTH_NOTE + C_NOTE + EIGTH_NOTE + D_NOTE + EIGTH_NOTE + C_NOTE + EIGTH_NOTE + F_NOTE + EIGTH_NOTE + C_NOTE + QUARTER_NOTE + C_NOTE + EIGTH_NOTE + F_NOTE + EIGTH_NOTE + C_NOTE + EIGTH_NOTE + F_NOTE + EIGTH_NOTE + A_NOTE + EIGTH_NOTE
+        + G_NOTE + SIXTEENTH_NOTE + F_NOTE + SIXTEENTH_NOTE + E_NOTE + SIXTEENTH_NOTE + D_NOTE + SIXTEENTH_NOTE + LO_D_NOTE + SIXTEENTH_NOTE + LO_D_END + SIXTEENTH_NOTE) 
+
+        time.sleep(1)
+		### Song 1 ends here
+
+        self.send_command(b'\x8D\x00') ##Opcode for playing the song, play song #1
+        time.sleep(9)
+
+		### Song 2 starts here
+        self.send_command(b'\x8C\x01\x0E')
+        self.send_command(C_NOTE + EIGTH_NOTE + F_NOTE + EIGTH_NOTE + C_NOTE + EIGTH_NOTE + D_NOTE + EIGTH_NOTE + C_NOTE + EIGTH_NOTE + F_NOTE + EIGTH_NOTE + C_NOTE + QUARTER_NOTE + D_NOTE + EIGTH_NOTE + C_NOTE + SIXTEENTH_NOTE + F_NOTE + SIXTEENTH_NOTE + LO_A + EIGTH_NOTE + LO_D_NOTE + EIGTH_NOTE + LO_F_NOTE + EIGTH_NOTE + LOWEST_D_NOTE + EIGTH_NOTE)
+		### Song 2 ends here
+
+        self.send_command(b'\x8D\x01') #Play a song, play song #2
+        time.sleep(1)
+class RobotController:
+    active_keys = set()
+    def __init__(self, port):
+        self.robot = Robot(port)
+
+    def combined_movement(self):
+        if not self.active_keys:
+            self.robot.drive_direct(0, 0)
+            return
+
+        if 'w' in self.active_keys and 'a' in self.active_keys:
+            self.robot.drive_direct(200,100)  # Forward-left
+        elif 'w' in self.active_keys and 'd' in self.active_keys:
+            self.robot.drive_direct(100,200)  # Forward-right
+        elif 's' in self.active_keys and 'a' in self.active_keys:
+            self.robot.drive_direct(-200, -100)  # Backward-left
+        elif 's' in self.active_keys and 'd' in self.active_keys:
+            self.robot.drive_direct(-100, -200)  # Backward-right
+        elif 'w' in self.active_keys:
+            self.robot.drive_direct(200, 200)
+        elif 's' in self.active_keys:
+            self.robot.drive_direct(-200, -200)
+        elif 'a' in self.active_keys:
+            self.robot.drive_direct(100, -100)
+        elif 'd' in self.active_keys:
+            self.robot.drive_direct(-100, 100)
+    
+    def on_key_press(self, event):
+        key = event.char
+        if key in "wasd" and key not in self.active_keys:
+            self.active_keys.add(key)
+            self.combined_movement()
+
+    # Handle key release events
+    def on_key_release(self,event):
+        key = event.char
+        if key in self.active_keys:
+            self.active_keys.remove(key)
+            self.combined_movement()
+    
+    def get_active_keys(self):
+        return self.active_keys
+    
+
+
+class RobotUI:
+    
+    def __init__(self, port):
+        self.RobotController = RobotController(port)
+        self.root = tk.Tk()
+        self.root.title("iRobot Create 2 Controller")
+        self.root.geometry("700x700")
+        self.root.configure(background="#00BB77")
+        self.led_display_var = StringVar()
+        self.create_widgets()
+        self.root.bind("<KeyPress>", self.RobotController.on_key_press)
+        self.root.bind("<KeyRelease>", self.RobotController.on_key_release)
+    
+    
+
+    def create_widgets(self):
+        # Buttons for robot movement
+        self.ForwardButton = tk.Button(self.root, text="Forward", command=lambda: self.RobotController.robot.drive_direct(200, 200), bg="white")
+        self.ForwardButton.place(x=300, y=150, width=100, height=50)
+        self.BackwardButton = tk.Button(self.root, text="Backward", command=lambda: self.RobotController.robot.drive_direct(-200, -200), bg="white")
+        self.BackwardButton.place(x=300, y=250, width=100, height=50)
+        self.LeftButton = tk.Button(self.root, text="Left", command=lambda: self.RobotController.robot.drive_direct(-100, 100), bg="white")
+        self.LeftButton.place(x=200, y=200, width=100, height=50)
+        self.RightButton = tk.Button(self.root, text="Right", command=lambda: self.RobotController.robot.drive_direct(100, -100), bg="white")
+        self.RightButton.place(x=400, y=200, width=100, height=50)
+        self.StopButton =  tk.Button(self.root, text="STOP", command=self.RobotController.robot.stop, bg="red", fg="white")
+        self.StopButton.place(x=300, y=200, width=100, height=50)
+
+        # Buttons for LEDs
+        self.RedLEDButton = tk.Button(self.root, text="Red LED", command=lambda: self.RobotController.robot.set_leds(255, 128), bg="red")
+        self.RedLEDButton.place(x=150, y=500, width=100, height=50)
+        self.GreenLEDButton = tk.Button(self.root, text="Green LED", command=lambda: self.RobotController.robot.set_leds(0, 128), bg="green")
+        self.GreenLEDButton.place(x=250, y=500, width=100, height=50)
+        self.OrangeLEDButton = tk.Button(self.root, text="Orange LED", command=lambda: self.RobotController.robot.set_leds(128, 128), bg="orange")
+        self.OrangeLEDButton.place(x=350, y=500, width=100, height=50)
+        self.YellowLEDButton = tk.Button(self.root, text="Yellow LED", command=lambda: self.RobotController.robot.set_leds(50, 128), bg="yellow")
+        self.YellowLEDButton.place(x=450, y=500, width=100, height=50)
+        
+        self.PlayTuneButton = tk.Button(self.root, text="PlayTune", command=lambda: self.RobotController.robot.playTune(), bg="white")
+        self.PlayTuneButton.place(x=50, y=500, width=100, height=50)
+
+        #Robot Image Display
+        self.RobotImage = Image.open("C:\\Users\\shado\\Desktop\\Coding Projects\\Robot\\robot_north.png").resize((100, 100))
+        self.RobotImageTk = ImageTk.PhotoImage(image=self.RobotImage)
+        canvas = tk.Canvas(self.root, width=100, height=100, bg="white")
+        canvas.pack(pady=10)
+        canvas.create_image(51, 51, image=self.RobotImageTk)
+
+        match self.RobotController.get_active_keys():
+            case "w":
+                rotated_image = self.RobotImage
+                robot_image_tk = ImageTk.PhotoImage(rotated_image)
+                canvas.delete("all")
+                canvas.create_image(51, 51, image=robot_image_tk)
+            case "s":
+                rotated_image = self.RobotImage.rotate(180)
+                robot_image_tk = ImageTk.PhotoImage(rotated_image)
+                canvas.delete("all")
+                canvas.create_image(51, 51, image=robot_image_tk)
+            case "a":
+                rotated_image = self.RobotImage(270)
+                robot_image_tk = ImageTk.PhotoImage(rotated_image)
+                canvas.delete("all")
+                canvas.create_image(51, 51, image=robot_image_tk)
+            case "d":
+                rotated_image = self.RobotImage(90)
+                robot_image_tk = ImageTk.PhotoImage(rotated_image)
+                canvas.delete("all")
+                canvas.create_image(51, 51, image=robot_image_tk)
+      
+
+        # LED digit display
+        self.LEDDigitButton = tk.Entry(self.root, textvariable=self.led_display_var)
+        self.LEDDigitButton.place(x=300, y=600, width=100, height=30)
+        self.SetDisplayLabel = tk.Button(self.root, text="Set Display", command=self.set_digit_display)
+        self.SetDisplayLabel.place(x=410, y=600, width=100, height=30)
+
+        # Quit button
+        self.QuitButton = tk.Button(self.root, text="QUIT", command=self.root.quit, bg="black", fg="white")
+        self.QuitButton.place(x=600, y=650, width=100, height=50)
+
+    def set_digit_display(self):
+        try:
+            digits = int(self.led_display_var.get())
+            self.RobotController.robot.set_digit_leds(digits)
+        except ValueError:
+            print("Invalid input for LED display. Enter a 4-digit number.")
+
+    def run(self):
+        self.root.mainloop()
+
+
+if __name__ == "__main__":
+    app = RobotUI(port="COM3")  # Update COM port as needed
+    app.run()
